@@ -2,11 +2,11 @@ import random
 
 def guessing_game():
     #generate a random number between 1 and 10
-    number_to_guess = random.randint(1,10)
+    number_to_guess = random.randint(1,100)
     attempts = 0
 
     print ("Welcome to the Number Guessing Game")
-    print ("I'm thinking of a number between 1 and 10.")
+    print ("I'm thinking of a number between 1 and 100.")
     print ("Can you guess what it is?")
 
     while True:
