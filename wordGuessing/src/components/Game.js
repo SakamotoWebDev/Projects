@@ -8,6 +8,7 @@ const Game = () => {
   const [guesses, setGuesses] = useState([]); // Array of evaluated guesses
   const [currentGuess, setCurrentGuess] = useState("");
   const [gameStatus, setGameStatus] = useState("playing"); // "playing", "won", "lost"
+  const [activeCol, setActiveCol] = useState(0);
 
   useEffect(() => {
     setSecretWord(getRandomWord());
@@ -48,14 +49,37 @@ const Game = () => {
     return result;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleLetterChange = (letter, rowIndex, colIndex) => {
+    if (gameStatus !== "playing") return;
+    
+    // Handle navigation when letter is null (arrow keys)
+    if (letter === null) {
+      // Check bounds
+      if (colIndex >= 0 && colIndex < 5) {
+        setActiveCol(colIndex);
+      }
+      return;
+    }
+    
+    // Update current guess with new letter
+    const newGuess = currentGuess.split('');
+    newGuess[colIndex] = letter;
+    setCurrentGuess(newGuess.join(''));
+    
+    // Automatically move to next square if current square is filled
+    if (letter && colIndex < 4) {
+      setActiveCol(colIndex + 1);
+    }
+  };
+
+  const handleSubmit = () => {
     if (gameStatus !== "playing" || currentGuess.length !== 5) return;
 
     const evaluation = evaluateGuess(currentGuess.toLowerCase(), secretWord.toLowerCase());
     const newGuesses = [...guesses, evaluation];
     setGuesses(newGuesses);
     setCurrentGuess("");
+    setActiveCol(0);
 
     if (currentGuess.toLowerCase() === secretWord.toLowerCase()) {
       setGameStatus("won");
@@ -64,22 +88,51 @@ const Game = () => {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (gameStatus !== "playing") return;
+    
+    if (e.key === "Enter" && currentGuess.length === 5) {
+      handleSubmit();
+    }
+  };
+
+  // Add global event listener for Enter key
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [currentGuess, gameStatus]);
+
   return (
-    <div className="game-container">
+    <div className="game-container" style={{
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      minHeight: "100vh",
+      textAlign: "center"
+    }}>
       <h1>Word Guessing Game</h1>
-      <Board guesses={guesses} currentGuess={currentGuess} />
+      <Board 
+        guesses={guesses} 
+        currentGuess={currentGuess} 
+        onLetterChange={handleLetterChange}
+        activeRow={guesses.length}
+        activeCol={activeCol}
+      />
       {gameStatus === "playing" ? (
-        <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            maxLength="5"
-            value={currentGuess}
-            onChange={(e) => setCurrentGuess(e.target.value)}
-            disabled={gameStatus !== "playing"}
-            style={{ textTransform: "lowercase" }}
-          />
-          <button type="submit">Guess</button>
-        </form>
+        <div>
+          <button 
+            onClick={handleSubmit} 
+            disabled={currentGuess.length !== 5} 
+            style={{ 
+              marginTop: "10px", 
+              padding: "8px 16px",
+              opacity: currentGuess.length === 5 ? 1 : 0.5
+            }}
+          >
+            Submit Guess
+          </button>
+        </div>
       ) : (
         <div>
           {gameStatus === "won" ? (
