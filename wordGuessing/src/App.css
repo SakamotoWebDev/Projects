@@ -1,0 +1,30 @@
+@keyframes float-up {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  20% {
+    transform: scale(1.1);
+    background-color: #4caf50;
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.7);
+    border-radius: 50%;
+  }
+  100% {
+    transform: translateY(-100px) scale(0.8);
+    opacity: 0;
+    border-radius: 50%;
+    background-color: #4caf50;
+  }
+}
+
+/* Ensure the App uses this CSS file */
+.game-container {
+  font-family: 'Arial', sans-serif;
+  line-height: 1.5;
+}
+
+/* Enlarge the balloon animation when correct */
+.board-row.animate {
+  position: relative;
+  z-index: 10;
+}

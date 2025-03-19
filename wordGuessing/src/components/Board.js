@@ -1,12 +1,22 @@
 // components/Board.js
 import React, { useRef, useEffect } from "react";
 
-const Board = ({ guesses, currentGuess, onLetterChange, activeRow, activeCol }) => {
+const Board = ({ guesses, currentGuess, onLetterChange, activeRow, activeCol, animateRow }) => {
   // Create 6 rows for the game board
   const rows = [];
   for (let i = 0; i < 6; i++) {
     if (i < guesses.length) {
-      rows.push(<Row key={i} letters={guesses[i]} rowIndex={i} onLetterChange={onLetterChange} isActive={false} activeCol={-1} />);
+      rows.push(
+        <Row 
+          key={i} 
+          letters={guesses[i]} 
+          rowIndex={i} 
+          onLetterChange={onLetterChange} 
+          isActive={false} 
+          activeCol={-1} 
+          animate={animateRow === i}
+        />
+      );
     } else if (i === guesses.length) {
       // Current guess row (in-progress)
       const letters = Array(5).fill().map((_, idx) => ({
@@ -22,6 +32,7 @@ const Board = ({ guesses, currentGuess, onLetterChange, activeRow, activeCol }) 
           onLetterChange={onLetterChange} 
           isActive={true} 
           activeCol={activeCol} 
+          animate={false}
         />
       );
     } else {
@@ -35,6 +46,7 @@ const Board = ({ guesses, currentGuess, onLetterChange, activeRow, activeCol }) 
           onLetterChange={onLetterChange} 
           isActive={false} 
           activeCol={-1} 
+          animate={false}
         />
       );
     }
@@ -44,18 +56,26 @@ const Board = ({ guesses, currentGuess, onLetterChange, activeRow, activeCol }) 
     <div className="board" style={{
       margin: "0 auto",
       maxWidth: "max-content",
-      padding: "20px"
+      padding: "20px",
+      backgroundColor: "white",
+      borderRadius: "10px",
+      boxShadow: "0 2px 10px rgba(0,0,0,0.1)"
     }}>
       {rows}
     </div>
   );
 };
 
-const Row = ({ letters, rowIndex, onLetterChange, isActive, activeCol }) => {
+const Row = ({ letters, rowIndex, onLetterChange, isActive, activeCol, animate }) => {
   return (
     <div
       className="board-row"
-      style={{ display: "flex", gap: "5px", marginBottom: "10px" }}
+      style={{ 
+        display: "flex", 
+        gap: "5px", 
+        marginBottom: "10px",
+        position: "relative" 
+      }}
     >
       {letters.map((item, index) => (
         <Cell 
@@ -67,13 +87,25 @@ const Row = ({ letters, rowIndex, onLetterChange, isActive, activeCol }) => {
           onLetterChange={onLetterChange}
           isActive={isActive}
           isFocused={isActive && index === activeCol}
+          animate={animate}
+          animationDelay={index * 100} // Stagger animation
         />
       ))}
     </div>
   );
 };
 
-const Cell = ({ letter, status, rowIndex, colIndex, onLetterChange, isActive, isFocused }) => {
+const Cell = ({ 
+  letter, 
+  status, 
+  rowIndex, 
+  colIndex, 
+  onLetterChange, 
+  isActive, 
+  isFocused, 
+  animate,
+  animationDelay
+}) => {
   const inputRef = useRef(null);
   
   useEffect(() => {
@@ -87,12 +119,12 @@ const Cell = ({ letter, status, rowIndex, colIndex, onLetterChange, isActive, is
   if (status === "correct") {
     backgroundColor = "green";
   } else if (status === "present") {
-    backgroundColor = "yellow";
+    backgroundColor = "#e9b342"; // yellow
   } else if (status === "absent") {
-    backgroundColor = "grey";
+    backgroundColor = "#787c7f"; // grey
   }
 
-  const style = {
+  const baseStyle = {
     width: "50px",
     height: "50px",
     display: "flex",
@@ -103,7 +135,21 @@ const Cell = ({ letter, status, rowIndex, colIndex, onLetterChange, isActive, is
     fontSize: "1.5rem",
     fontWeight: "bold",
     border: "2px solid #999",
-    position: "relative"
+    borderRadius: "10px",
+    position: "relative",
+    transition: "all 0.3s ease",
+    color: status ? "white" : "black"
+  };
+  
+  // Animation styles for correct guesses
+  const animationStyle = animate ? {
+    animation: `float-up 2s forwards ${animationDelay}ms`,
+    transformOrigin: "center",
+  } : {};
+
+  const style = {
+    ...baseStyle,
+    ...animationStyle
   };
 
   const handleKeyDown = (e) => {
@@ -115,13 +161,13 @@ const Cell = ({ letter, status, rowIndex, colIndex, onLetterChange, isActive, is
       onLetterChange(null, rowIndex, colIndex - 1);
       e.preventDefault();
     } else if (e.key === "Backspace") {
-      if (colIndex > 0) {
-        // Clear current cell and move to previous cell
-        onLetterChange(null, rowIndex, colIndex - 1);
+      if (letter) {
+        // Clear current cell if it has a letter
         onLetterChange("", rowIndex, colIndex );
-      } else {
-        // Just clear current cell if we're at the first position
-        onLetterChange("", rowIndex, colIndex);
+        onLetterChange(null, rowIndex, colIndex - 1);
+      } else if (colIndex > 0) {
+        // Move to previous cell if current cell is empty
+        onLetterChange(null, rowIndex, colIndex - 1);
       }
       e.preventDefault();
     }
@@ -154,7 +200,8 @@ const Cell = ({ letter, status, rowIndex, colIndex, onLetterChange, isActive, is
             fontSize: "1.5rem",
             fontWeight: "bold",
             textTransform: "uppercase",
-            outline: isFocused ? "2px solid blue" : "none"
+            outline: isFocused ? "2px solid blue" : "none",
+            borderRadius: "8px"
           }}
           disabled={!isActive}
         />
