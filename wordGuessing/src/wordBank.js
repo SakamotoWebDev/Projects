@@ -228,29 +228,60 @@ const findClosestWord = (candidate) => {
   return closestWord;
 };
 
-// Generate a word and validate it against our dictionary
-export const generateValidWord = () => {
-  // Try to generate a valid word with a maximum number of attempts
-  const maxAttempts = 100;
-  for (let i = 0; i < maxAttempts; i++) {
-    const candidate = generateCandidate();
-    
-    // Check if it's in our dictionary
-    if (commonFiveLetterWords.has(candidate)) {
-      return candidate;
+// Updated getRandomWord function that selects words based on difficulty
+export function getRandomWord(difficulty = "medium") {
+  // Convert the set of common words to an array
+  const words = Array.from(commonFiveLetterWords);
+  
+  // Letter frequency values (approximate percentages) from English language studies
+  const letterFrequency = {
+    a: 8.17, b: 1.49, c: 2.78, d: 4.25, e: 12.70, f: 2.23, g: 2.02, h: 6.09,
+    i: 6.97, j: 0.15, k: 0.77, l: 4.03, m: 2.41, n: 6.75, o: 7.51, p: 1.93,
+    q: 0.10, r: 5.99, s: 6.33, t: 9.06, u: 2.76, v: 0.98, w: 2.36, x: 0.15,
+    y: 1.97, z: 0.07
+  };
+  
+  // Compute a frequency score for each word as the sum of its letters' frequencies
+  const scores = words.map(word => {
+    let score = 0;
+    for (const char of word) {
+      score += letterFrequency[char] || 0;
+    }
+    return score;
+  });
+  
+  // Determine the minimum and maximum scores to normalize the values
+  const minScore = Math.min(...scores);
+  const maxScore = Math.max(...scores);
+  const range = maxScore - minScore;
+  
+  // Calculate weights based on difficulty setting
+  // For 'easy': higher frequency (more common) words get a higher weight
+  // For 'hard': lower frequency (more obscure) words get a higher weight
+  // For 'medium': use uniform weights
+  const weights = scores.map(score => {
+    const normalized = range > 0 ? (score - minScore) / range : 1;
+    if (difficulty === "easy") {
+      return normalized; // Prefer words with higher letter frequency
+    } else if (difficulty === "hard") {
+      return 1 - normalized; // Prefer words with lower letter frequency
+    } else { // medium
+      return 1; // Equal chance for all words
+    }
+  });
+  
+  // Perform weighted random selection
+  const totalWeight = weights.reduce((acc, w) => acc + w, 0);
+  let random = Math.random() * totalWeight;
+  for (let i = 0; i < words.length; i++) {
+    random -= weights[i];
+    if (random <= 0) {
+      return words[i];
     }
   }
   
-  // If we couldn't generate a valid word, find the closest match
-  const fallbackCandidate = generateCandidate();
-  const closestWord = findClosestWord(fallbackCandidate);
-  
-  return closestWord || Array.from(commonFiveLetterWords)[Math.floor(Math.random() * commonFiveLetterWords.size)];
-};
-
-// For API compatibility with the rest of your code
-export function getRandomWord() {
-  return generateValidWord();
+  // Fallback in case of rounding issues
+  return words[0];
 }
 
 // A cache of generated words to avoid duplicates in a game session
