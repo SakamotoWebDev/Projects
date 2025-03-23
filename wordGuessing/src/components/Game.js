@@ -16,13 +16,15 @@ const Game = () => {
   // New state for background color
   const [backgroundColor, setBackgroundColor] = useState("#f5f5f5");
   const [showSettings, setShowSettings] = useState(false);
+  // New state for difficulty
+  const [difficulty, setDifficulty] = useState("easy");
 
   useEffect(() => {
     startNewGame();
   }, []);
 
   const startNewGame = () => {
-    setSecretWord(getRandomWord());
+    setSecretWord(getRandomWord(difficulty));
     setGuesses([]);
     setCurrentGuess("");
     setGameStatus("playing");
@@ -320,6 +322,26 @@ const Game = () => {
                 borderRadius: "5px",
               }}
             />
+          </div>
+        </div>
+        
+        <div style={{ marginBottom: "15px" }}>
+          <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
+            Difficulty:
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="2"
+            step="1"
+            value={["easy", "medium", "hard"].indexOf(difficulty)}
+            onChange={(e) => setDifficulty(["easy", "medium", "hard"][parseInt(e.target.value)])}
+            style={{ width: "100%" }}
+          />
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.9em" }}>
+            <span>Easy</span>
+            <span>Medium</span>
+            <span>Hard</span>
           </div>
         </div>
         
