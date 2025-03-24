@@ -6,7 +6,6 @@ import { getRandomWord, resetWordCache } from "../wordBank";
 
 const Game = () => {
   const [secretWord, setSecretWord] = useState(""); //State for secret word
-  const [cachedWord, setCachedWord] = useState(""); //New state for word cahing and hints
   const [guesses, setGuesses] = useState([]); // Array of evaluated guesses
   const [currentGuess, setCurrentGuess] = useState(""); //State for current guess
   const [gameStatus, setGameStatus] = useState("playing"); // "playing", "won", "lost"
@@ -17,7 +16,6 @@ const Game = () => {
   const [backgroundColor, setBackgroundColor] = useState("#f5f5f5"); // New state for background color
   const [showSettings, setShowSettings] = useState(false); // New state for settings
   const [difficulty, setDifficulty] = useState("easy"); // New state for difficulty
-  const [hints, setHints] = useState([]); // New state for hints
 
 
   useEffect(() => {
@@ -26,7 +24,6 @@ const Game = () => {
 
   const startNewGame = () => {
     setSecretWord(getRandomWord(difficulty));
-    setCachedWord(getRandomWord(difficulty));
     setGuesses([]);
     setCurrentGuess("");
     setGameStatus("playing");
@@ -34,7 +31,6 @@ const Game = () => {
     setAnimateRow(null);
     // Reset letter statuses when starting a new game
     setLetterStatuses({});
-    setHints([]);
   };
 
   // Evaluate the guess against the secret word
@@ -140,7 +136,7 @@ const Game = () => {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit =  () => {
     if (gameStatus !== "playing" || currentGuess.length !== 5) return;
 
     const evaluation = evaluateGuess(currentGuess.toLowerCase(), secretWord.toLowerCase());
@@ -160,10 +156,6 @@ const Game = () => {
     } else if (newGuesses.length === 6) {
       setGameStatus("lost");
     } else {
-       // Fetch hint for the incorrect guess and cache it
-    const hint = await fetchHintForGuess(currentGuess);
-    setHints((prevHints) => [...prevHints, hint]);
-
       // Continue game with a new guess
       setCurrentGuess("");
       setActiveCol(0);
@@ -332,6 +324,7 @@ const Game = () => {
           </div>
         </div>
         
+        {/* Difficulty range input */}
         <div style={{ marginBottom: "15px" }}>
           <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
             Difficulty:
@@ -392,7 +385,6 @@ const Game = () => {
         activeRow={guesses.length}
         activeCol={activeCol}
         animateRow={animateRow}
-        hints={hints}
       />
       
       <Keyboard 
