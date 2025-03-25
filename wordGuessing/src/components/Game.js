@@ -323,18 +323,13 @@ const Game = () => {
       }}>
         <span>Score: {score}</span>
         
-        <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-        {isWordRevealed && (
-            <span style={{ 
-              backgroundColor: "#ffeb3b",
-              padding: "5px 10px",
-              borderRadius: "5px",
-              fontSize: "12px",
-              fontWeight: "bold"
-            }}>
-              {secretWord}
-            </span>
-          )}
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "5px",
+          }}>
+        
           {gameStatus === "playing" && (
             <button
               onClick={handleRevealWord}
@@ -350,6 +345,31 @@ const Game = () => {
             >
               {isWordRevealed ? "Hide Word" : "Show Word"}
             </button>
+          )}
+
+          {isWordRevealed && (
+            <span style={{
+            fontSizeAdjust: "60px",
+            color: "white",
+            fontWeight: "bold",
+            position: "absolute",
+            top: "180px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "100%",
+            maxWidth: "50px",
+            borderRadius: "10px",
+            padding: "15px",
+            backgroundColor: "#ff5722",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
+            zIndex: 100,
+            opacity: isWordRevealed ? 1 : 0,
+            visibility: isWordRevealed ? "visible" : "hidden",
+            transition: "opacity 1000ms ease, visibility 1000ms ease",
+            pointerEvents: isWordRevealed ? "auto" : "none"
+            }}>
+              {secretWord}
+            </span>
           )}
         </div>
       </div>
