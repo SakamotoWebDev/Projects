@@ -16,7 +16,7 @@ const Game = () => {
   const [backgroundColor, setBackgroundColor] = useState("#f5f5f5"); // New state for background color
   const [showSettings, setShowSettings] = useState(false); // New state for settings
   const [difficulty, setDifficulty] = useState("easy"); // New state for difficulty
-
+  const [isWordRevealed, setIsWordRevealed] = useState(false); // New state for word reveal
 
   useEffect(() => {
     startNewGame();
@@ -106,7 +106,7 @@ const Game = () => {
       setActiveCol(colIndex + 1);
     }
   };
-
+    // Start a new game with the enter key if game ends
   const handleKeyPress = (key) => {
     if (gameStatus !== "playing") {
       if (key === "enter" && gameStatus !== "playing") {
@@ -148,6 +148,7 @@ const Game = () => {
       setGameStatus("won");
       setScore(score + 1);
       setAnimateRow(guesses.length);
+      setCurrentGuess(""); // Clear current guess
       
       // After animation completes
       setTimeout(() => {
@@ -155,6 +156,7 @@ const Game = () => {
       }, 2000);
     } else if (newGuesses.length === 6) {
       setGameStatus("lost");
+      setCurrentGuess(""); // Clear current guess
     } else {
       // Continue game with a new guess
       setCurrentGuess("");
@@ -199,12 +201,22 @@ const Game = () => {
     }
   }, []);
 
+    // Add after other state handler functions
+  const handleRevealWord = () => {
+    setIsWordRevealed(!isWordRevealed); //Toggle the reveal state
+    /* setGameStatus("lost"); // Optional: end the game when word is revealed */
+    //only penalize score on initial reveal, not on hiding
+    if (!isWordRevealed) {
+      setScore(Math.max(0,score - 1)); // Optional: decrease score for revealing
+    }
+  };
+
   return (
     <div 
       className="game-container" 
       style={{
         display: "flex",
-        flexDirection: "column",
+        flexDirection: "row", // Changed from column to row
         alignItems: "center",
         justifyContent: "center",
         minHeight: "100vh",
@@ -212,210 +224,42 @@ const Game = () => {
         backgroundColor: backgroundColor,
         padding: "20px",
         fontFamily: "Arial, sans-serif",
-        position: "relative"
+        position: "relative",
       }}
     >
-      <div 
-        className="game-header" 
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          width: "100%",
-          maxWidth: "500px",
-          marginBottom: "20px",
-          borderRadius: "10px",
-          padding: "10px",
-          backgroundColor: "white",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.1)"
-        }}
-      >
-        <h1 style={{ margin: 0 }}>WRDLY</h1>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <span style={{ marginRight: "10px" }}>Score: {score}</span>
-          
-          {/* Settings button */}
-          <button 
-            onClick={toggleSettings}
-            style={{
-              padding: "5px 10px",
-              borderRadius: "10px",
-              border: "none",
-              backgroundColor: "#e0e0e0",
-              cursor: "pointer"
-            }}
-          >
-            ⚙️
-          </button>
-          
-          {/* Always visible reset button */}
-          <button 
-            onClick={startNewGame}
-            style={{
-              padding: "5px 10px",
-              borderRadius: "10px",
-              border: "none",
-              backgroundColor: "#2196f3",
-              color: "white",
-              fontWeight: "bold",
-              cursor: "pointer"
-            }}
-          >
-            Reset
-          </button>
-        </div>
-      </div>
-      
-      {/* Settings panel with fade effect */}
-      <div
-        style={{
-          position: "absolute",
-          top: "70px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "100%",
-          maxWidth: "500px",
-          borderRadius: "10px",
-          padding: "15px",
-          backgroundColor: "white",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
-          zIndex: 100,
-          opacity: showSettings ? 1 : 0,
-          visibility: showSettings ? "visible" : "hidden",
-          transition: "opacity 750ms ease, visibility 750ms ease",
-          pointerEvents: showSettings ? "auto" : "none"
-        }}
-      >
-        <h3 style={{ marginTop: 0 }}>Game Settings</h3>
-        
-        <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
-            Background Color:
-          </label>
-          <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: "10px" }}>
-            {/* Predefined color options */}
-            {["#f5f5f5", "#e8f5e9", "#e3f2fd", "#fff8e1", "#fce4ec", "#f3e5f5", "#ede7f6"].map(color => (
-              <div
-                key={color}
-                onClick={() => handleBackgroundChange(color)}
-                style={{
-                  width: "30px",
-                  height: "30px",
-                  backgroundColor: color,
-                  borderRadius: "5px",
-                  cursor: "pointer",
-                  border: backgroundColor === color ? "2px solid #2196f3" : "1px solid #ddd"
-                }}
-              />
-            ))}
-            
-            {/* Custom color picker */}
-            <input
-              type="color"
-              value={backgroundColor}
-              onChange={(e) => handleBackgroundChange(e.target.value)}
-              style={{
-                width: "30px",
-                height: "30px",
-                padding: 0,
-                border: "1px solid #ddd",
-                borderRadius: "5px",
-              }}
-            />
-          </div>
-        </div>
-        
-        {/* Difficulty range input */}
-        <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
-            Difficulty:
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="2"
-            step="1"
-            value={["easy", "medium", "hard"].indexOf(difficulty)}
-            onChange={(e) => setDifficulty(["easy", "medium", "hard"][parseInt(e.target.value)])}
-            style={{ width: "100%" }}
-          />
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.9em" }}>
-            <span>Easy</span>
-            <span>Medium</span>
-            <span>Hard</span>
-          </div>
-        </div>
-        
-        <button
-          onClick={toggleSettings}
-          style={{
-            padding: "5px 15px",
-            borderRadius: "10px",
-            border: "none",
-            backgroundColor: "#e0e0e0",
-            cursor: "pointer"
-          }}
-        >
-          Close Settings
-        </button>
-      </div>
-      
-      {/* Semi-transparent overlay that appears behind the settings */}
-      {showSettings && (
-        <div 
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0,0,0,0.3)",
-            zIndex: 50,
-            opacity: showSettings ? 1 : 0,
-            transition: "opacity 750ms ease",
-            cursor: "pointer"
-          }}
-          onClick={toggleSettings}
-        />
-      )}
-      
-      <Board 
-        guesses={guesses} 
-        currentGuess={currentGuess} 
-        onLetterChange={handleLetterChange}
-        activeRow={guesses.length}
-        activeCol={activeCol}
-        animateRow={animateRow}
-      />
-      
-      <Keyboard 
-        letterStatuses={letterStatuses} 
-        onKeyPress={handleKeyPress} 
-      />
-      
+      {/* Game status message - Now positioned to the left */}
       {gameStatus !== "playing" && (
-        <div 
+        <div
           className="game-message"
           style={{
-            marginTop: "20px",
-            padding: "15px",
+            position: "fixed", // Changed from relative to fixed
+            left: "20px", // Position from left edge
+            top: "50%", // Center vertically
+            transform: "translateY(-50%)", // Perfect vertical centering
+            padding: "20px",
             borderRadius: "10px",
             backgroundColor: gameStatus === "won" ? "#c8e6c9" : "#ffcdd2",
             color: gameStatus === "won" ? "#2e7d32" : "#c62828",
             fontWeight: "bold",
-            maxWidth: "500px",
-            width: "100%",
-            textAlign: "center"
+            width: "250px",
+            textAlign: "center",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            zIndex: "1000" // Ensure it stays above other elements
           }}
         >
           {gameStatus === "won" ? (
-            <h2>Congratulations! You've guessed {secretWord}.</h2>
+            <h2 style={{ fontSize: "1.2em", margin: "0 0 10px 0" }}>
+              Congratulations! You've guessed {secretWord}.
+            </h2>
           ) : (
-            <h2>Game Over! The word was {secretWord}.</h2>
+            <h2 style={{ fontSize: "1.2em", margin: "0 0 10px 0" }}>
+              Game Over! The word was {secretWord}.
+            </h2>
           )}
-          <button 
+          <button
             onClick={startNewGame}
             style={{
-              padding: "10px 20px",
+              padding: "8px 16px",
               borderRadius: "10px",
               border: "none",
               backgroundColor: "#2196f3",
@@ -429,6 +273,254 @@ const Game = () => {
           </button>
         </div>
       )}
+
+      {/* Main game content wrapper */}
+      <div style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        maxWidth: "500px"
+      }}>
+        <div 
+          className="game-header" 
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            width: "100%",
+            maxWidth: "500px",
+            height: "1hv",
+            marginBottom: "18px",
+            borderRadius: "18px",
+            padding: "10px",
+            backgroundColor: "white",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.1)"
+          }}
+        >
+          <h1 
+          style={{
+            Display: "flex",
+            justifyContent: "center",
+            flexDirection: "row",
+            alignItems: "flex-start", 
+            margin: 0,
+            padding: "10px",
+            fontSize: "2.4em",
+            fontFamily: "Agyx Monospace Rounded, sans-serif",
+            fontWeight: "regular",
+            color: "#000000",
+
+
+          }}>BabbleBox</h1>
+          <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+      {/* Left side group - Score and Reveal controls */}
+      <div style={{ 
+        display: "flex", 
+        flexDirection: "column", 
+        alignItems: "flex-end",
+        gap: "5px",
+        marginRight: "15px"
+      }}>
+        <span>Score: {score}</span>
+        
+        <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+        {isWordRevealed && (
+            <span style={{ 
+              backgroundColor: "#ffeb3b",
+              padding: "5px 10px",
+              borderRadius: "5px",
+              fontSize: "12px",
+              fontWeight: "bold"
+            }}>
+              {secretWord}
+            </span>
+          )}
+          {gameStatus === "playing" && (
+            <button
+              onClick={handleRevealWord}
+              style={{
+                padding: "7px 9px 9px 7px",
+                borderRadius: "10px",
+                border: "none",
+                backgroundColor: isWordRevealed ? "#4caf50" : "#ff5722",
+                color: "white",
+                cursor: "pointer",
+                fontSize: "12px"
+              }}
+            >
+              {isWordRevealed ? "Hide Word" : "Show Word"}
+            </button>
+          )}
+        </div>
+      </div>
+    
+      {/* Right side group - Settings and Reset */}
+      <div style={{ 
+        display: "flex", 
+        flexDirection: "column", 
+        alignItems: "flex-end",
+        gap: "5px",
+        marginRight: "15px"
+      }}>
+        <button 
+          onClick={toggleSettings}
+          style={{
+            padding: "5px 10px",
+            borderRadius: "10px",
+            border: "none",
+            backgroundColor: "#efefef",
+            cursor: "pointer"
+          }}
+        >
+          ⚙️
+        </button>
+        
+        <button 
+          onClick={startNewGame}
+          style={{
+            padding: "5px 10px",
+            borderRadius: "10px",
+            border: "none",
+            backgroundColor: "#2196f3",
+            color: "white",
+            fontWeight: "bold",
+            cursor: "pointer"
+          }}
+        >
+          Reset
+        </button>
+      </div>
+    </div>
+          </div>
+        </div>
+        
+        {/* Settings panel with fade effect */}
+        <div
+          style={{
+            position: "absolute",
+            top: "70px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "100%",
+            maxWidth: "500px",
+            borderRadius: "10px",
+            padding: "15px",
+            backgroundColor: "white",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
+            zIndex: 100,
+            opacity: showSettings ? 1 : 0,
+            visibility: showSettings ? "visible" : "hidden",
+            transition: "opacity 750ms ease, visibility 750ms ease",
+            pointerEvents: showSettings ? "auto" : "none"
+          }}
+        >
+          <h3 style={{ marginTop: 0 }}>Game Settings</h3>
+          
+          <div style={{ marginBottom: "15px" }}>
+            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
+              Background Color:
+            </label>
+            <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: "10px" }}>
+              {/* Predefined color options */}
+              {["#f5f5f5", "#e8f5e9", "#e3f2fd", "#fff8e1", "#fce4ec", "#f3e5f5", "#ede7f6"].map(color => (
+                <div
+                  key={color}
+                  onClick={() => handleBackgroundChange(color)}
+                  style={{
+                    width: "30px",
+                    height: "30px",
+                    backgroundColor: color,
+                    borderRadius: "5px",
+                    cursor: "pointer",
+                    border: backgroundColor === color ? "2px solid #2196f3" : "1px solid #ddd"
+                  }}
+                />
+              ))}
+              
+              {/* Custom color picker */}
+              <input
+                type="color"
+                value={backgroundColor}
+                onChange={(e) => handleBackgroundChange(e.target.value)}
+                style={{
+                  width: "30px",
+                  height: "30px",
+                  padding: 0,
+                  border: "1px solid #ddd",
+                  borderRadius: "5px",
+                }}
+              />
+            </div>
+          </div>
+          
+          {/* Difficulty range input */}
+          <div style={{ marginBottom: "15px" }}>
+            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
+              Difficulty:
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="2"
+              step="1"
+              value={["easy", "medium", "hard"].indexOf(difficulty)}
+              onChange={(e) => setDifficulty(["easy", "medium", "hard"][parseInt(e.target.value)])}
+              style={{ width: "100%" }}
+            />
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.9em" }}>
+              <span>Easy</span>
+              <span>Medium</span>
+              <span>Hard</span>
+            </div>
+          </div>
+          
+          <button
+            onClick={toggleSettings}
+            style={{
+              padding: "5px 15px",
+              borderRadius: "10px",
+              border: "none",
+              backgroundColor: "#e0e0e0",
+              cursor: "pointer"
+            }}
+          >
+            Close Settings
+          </button>
+        </div>
+        
+        {/* Semi-transparent overlay that appears behind the settings */}
+        {showSettings && (
+          <div 
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0,0,0,0.3)",
+              zIndex: 50,
+              opacity: showSettings ? 1 : 0,
+              transition: "opacity 750ms ease",
+              cursor: "pointer"
+            }}
+            onClick={toggleSettings}
+          />
+        )}
+        
+        <Board 
+          guesses={guesses} 
+          currentGuess={currentGuess} 
+          onLetterChange={handleLetterChange}
+          activeRow={guesses.length}
+          activeCol={activeCol}
+          animateRow={animateRow}
+        />
+        
+        <Keyboard 
+          letterStatuses={letterStatuses} 
+          onKeyPress={handleKeyPress} 
+        />
+      </div>
     </div>
   );
 };

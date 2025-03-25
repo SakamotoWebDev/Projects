@@ -228,10 +228,15 @@ const findClosestWord = (candidate) => {
   return closestWord;
 };
 
+// Add this validation function
+const isValidWord = (word) => {
+  return word && word.length === 5 && /^[a-z]+$/.test(word);
+};
+
 // Updated getRandomWord function that selects words based on difficulty
 export function getRandomWord(difficulty = "medium") {
   // Convert the set of common words to an array
-  const words = Array.from(commonFiveLetterWords);
+  const words = Array.from(commonFiveLetterWords).filter(isValidWord);
   
   // Letter frequency values (approximate percentages) from English language studies
   const letterFrequency = {
@@ -270,18 +275,19 @@ export function getRandomWord(difficulty = "medium") {
     }
   });
   
-  // Perform weighted random selection
+  // Perform weighted random selection with validation
   const totalWeight = weights.reduce((acc, w) => acc + w, 0);
   let random = Math.random() * totalWeight;
   for (let i = 0; i < words.length; i++) {
     random -= weights[i];
-    if (random <= 0) {
+    if (random <= 0 && isValidWord(words[i])) {
       return words[i];
     }
   }
   
-  // Fallback in case of rounding issues
-  return words[0];
+  // Fallback to a safe default if no valid word is found
+  return Array.from(commonFiveLetterWords)
+    .filter(isValidWord)[0] || "about";
 }
 
 // A cache of generated words to avoid duplicates in a game session
@@ -296,7 +302,13 @@ export function getUniqueRandomWord() {
   do {
     word = getRandomWord();
     attempts++;
-  } while (wordCache.has(word) && attempts < maxAttempts);
+  } while ((!isValidWord(word) || wordCache.has(word)) && attempts < maxAttempts);
+  
+  if (!isValidWord(word)) {
+    // Fallback to a guaranteed valid word if necessary
+    word = Array.from(commonFiveLetterWords)
+      .filter(isValidWord)[0] || "about";
+  }
   
   wordCache.add(word);
   
