@@ -56,7 +56,7 @@ const commonFiveLetterWords = new Set([
  */
 
 // ENHANCEMENT 2: Levenshtein Distance for better word similarity matching
-const levenshteinDistance = (str1, str2) => {
+/* const levenshteinDistance = (str1, str2) => {
   const m = str1.length;
   const n = str2.length;
   
@@ -84,6 +84,7 @@ const levenshteinDistance = (str1, str2) => {
   
   return dp[m][n];
 };
+*/
 
 // ENHANCEMENT 3: Common word clusters (included in the expanded dictionary above)
 // The dictionary now ensures coverage of all 26 letters
@@ -207,7 +208,7 @@ export const generateCandidate = () => {
 };
 
 // Find the closest word in our dictionary using Levenshtein distance
-const findClosestWord = (candidate) => {
+/* const findClosestWord = (candidate) => {
   let closestWord = null;
   let minDistance = Infinity;
   
@@ -227,6 +228,7 @@ const findClosestWord = (candidate) => {
   
   return closestWord;
 };
+*/
 
 // Add this validation function
 const isValidWord = (word) => {

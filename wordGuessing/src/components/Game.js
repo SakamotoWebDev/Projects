@@ -1,8 +1,8 @@
 // components/Game.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, } from "react";
 import Board from "./Board";
 import Keyboard from "./Keyboard";
-import { getRandomWord, resetWordCache } from "../wordBank";
+import { getRandomWord } from "../wordBank";
 
 const Game = () => {
   const [secretWord, setSecretWord] = useState(""); //State for secret word
@@ -17,21 +17,19 @@ const Game = () => {
   const [showSettings, setShowSettings] = useState(false); // New state for settings
   const [difficulty, setDifficulty] = useState("easy"); // New state for difficulty
   const [isWordRevealed, setIsWordRevealed] = useState(false); // New state for word reveal
-
-  useEffect(() => {
-    startNewGame();
-  }, []);
-
-  const startNewGame = () => {
+  const startNewGame = useCallback(() => {
     setSecretWord(getRandomWord(difficulty));
     setGuesses([]);
     setCurrentGuess("");
     setGameStatus("playing");
     setActiveCol(0);
     setAnimateRow(null);
-    // Reset letter statuses when starting a new game
     setLetterStatuses({});
-  };
+  }, [difficulty]);
+  
+  useEffect(() => {
+    startNewGame();
+  }, [startNewGame]);
 
   // Evaluate the guess against the secret word
   const evaluateGuess = (guess, answer) => {
@@ -134,7 +132,7 @@ const Game = () => {
         handleLetterChange(key, guesses.length, activeCol);
       }
     }
-  };
+  }; 
 
   const handleSubmit =  () => {
     if (gameStatus !== "playing" || currentGuess.length !== 5) return;
@@ -164,7 +162,7 @@ const Game = () => {
     }
   };
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = useCallback((e) => {
     // Convert key to lowercase
     const key = e.key.toLowerCase();
     
@@ -173,13 +171,13 @@ const Game = () => {
       handleKeyPress(key);
       e.preventDefault();
     }
-  };
+  }, [handleKeyPress, /*gameStatus, currentGuess, activeCol */]);
 
   // Add global event listener for keyboard input
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentGuess, gameStatus, activeCol]);
+  }, [handleKeyDown]);
 
   // Add this function to toggle settings
   const toggleSettings = () => {
@@ -201,10 +199,10 @@ const Game = () => {
     }
   }, []);
 
-    // Add after other state handler functions
+    // word reveal function
   const handleRevealWord = () => {
     setIsWordRevealed(!isWordRevealed); //Toggle the reveal state
-    /* setGameStatus("lost"); // Optional: end the game when word is revealed */
+    setGameStatus("lost"); // Optional: end the game when word is revealed
     //only penalize score on initial reveal, not on hiding
     if (!isWordRevealed) {
       setScore(Math.max(0,score - 1)); // Optional: decrease score for revealing
@@ -392,7 +390,9 @@ const Game = () => {
             cursor: "pointer"
           }}
         >
-          ⚙️
+          {/* settings icon */}
+
+          <span role="img" aria-label="Settings">⚙️</span> 
         </button>
         
         <button 
