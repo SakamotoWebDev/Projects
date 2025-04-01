@@ -20,6 +20,8 @@ const Game = () => {
   const [showSettings, setShowSettings] = useState(false); // New state for settings
   const [difficulty, setDifficulty] = useState("easy"); // New state for difficulty
   const [isWordRevealed, setIsWordRevealed] = useState(false); // New state for word reveal
+ 
+ 
   const startNewGame = useCallback(() => {
     setSecretWord(getRandomWord(difficulty));
     setGuesses([]);
@@ -28,6 +30,7 @@ const Game = () => {
     setActiveCol(0);
     setAnimateRow(null);
     setLetterStatuses({});
+    setIsWordRevealed(false); // Reset word reveal state
   }, [difficulty]);
   
   useEffect(() => {
@@ -158,6 +161,7 @@ const Game = () => {
     } else if (newGuesses.length === 6) {
       setGameStatus("lost");
       setCurrentGuess(""); // Clear current guess
+
     } else {
       // Continue game with a new guess
       setCurrentGuess("");
@@ -243,7 +247,7 @@ const Game = () => {
   
         <div className="game-content">
           <div className="game-header" style={{ backgroundColor: getContrastingColor(backgroundColor) }}>
-            <h1 className="game-title" style={{ color: backgroundColor }}>BabbleBox</h1> 
+            <h1 className="game-title" style={{ color: backgroundColor }}>BabbleBoxes</h1> 
             <div className="controls-group">
               <div className="controls-group">
                 {/* Left side group - Score and Reveal controls */}
