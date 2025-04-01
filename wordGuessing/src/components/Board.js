@@ -1,5 +1,6 @@
 // components/Board.js
 import React, { useRef, useEffect } from "react";
+import './Board.css'; // Assuming you have a CSS file for styles
 
 const Board = ({ guesses, currentGuess, onLetterChange, activeRow, activeCol, animateRow }) => {
   // Create 6 rows for the game board

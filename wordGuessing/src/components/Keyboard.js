@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import './Keyboard.css';
 
 const Keyboard = ({ letterStatuses, onKeyPress }) => {
   // Add state to track the currently pressed key
